@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.qa
+.env.prod
+*.log
+*.xlsx
+*.xls
+.DS_Store

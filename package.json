@@ -1,0 +1,25 @@
+{
+  "name": "alt-excel",
+  "version": "1.0.0",
+  "description": "Delete CleverTap profiles from Excel spreadsheet",
+  "main": "dist/delete-profiles.js",
+  "scripts": {
+    "build": "tsc",
+    "delete-profiles": "ts-node src/delete-profiles.ts",
+    "delete-profiles:qa": "ts-node src/delete-profiles.ts --env=qa",
+    "delete-profiles:prod": "ts-node src/delete-profiles.ts --env=prod",
+    "populate-profiles": "ts-node src/populate-profiles.ts",
+    "populate-profiles:qa": "ts-node src/populate-profiles.ts --env=qa",
+    "populate-profiles:prod": "ts-node src/populate-profiles.ts --env=prod"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.2"
+  }
+}
