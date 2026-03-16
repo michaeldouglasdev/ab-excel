@@ -6,7 +6,8 @@ import { loadEnv, getPositionalArgs } from "./env";
 const env = loadEnv();
 
 const BATCH_SIZE = 100;
-const ID_COLUMN = "E"; // Coluna E = índice 4 (0-based)
+const ID_COLUMN = "E"; // CleverTap (objectId)
+const IDENTITY_COLUMN = "C"; // Identity — só deleta se estiver nulo/vazio
 
 interface Config {
   accountId: string;
@@ -49,12 +50,22 @@ function extractIdsFromExcel(filePath: string): string[] {
   const data = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
 
   const ids: string[] = [];
-  const colIndex = XLSX.utils.decode_col(ID_COLUMN); // E = 4
+  const idColIndex = XLSX.utils.decode_col(ID_COLUMN); // E = 4 (CleverTap)
+  const identityColIndex = XLSX.utils.decode_col(IDENTITY_COLUMN); // C = 2
 
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
-    if (Array.isArray(row) && row[colIndex] !== undefined && row[colIndex] !== null) {
-      const value = String(row[colIndex]).trim();
+    if (!Array.isArray(row)) continue;
+
+    // Só inclui se Identity for nulo ou vazio
+    const identity = row[identityColIndex];
+    if (identity !== undefined && identity !== null && String(identity).trim() !== "") {
+      continue;
+    }
+
+    const idValue = row[idColIndex];
+    if (idValue !== undefined && idValue !== null) {
+      const value = String(idValue).trim();
       if (value) {
         ids.push(value);
       }
@@ -143,14 +154,14 @@ async function main(): Promise<void> {
   const ids = extractIdsFromExcel(config.excelPath);
 
   if (ids.length === 0) {
-    console.log("Nenhum ID encontrado na coluna E.");
+    console.log("Nenhum ID encontrado (coluna E) com Identity vazio (coluna C).");
     return;
   }
 
   const logWriter = createLogWriter(config.excelPath);
   console.log(`Log: ${logWriter.path}`);
 
-  console.log(`Encontrados ${ids.length} IDs na coluna E.`);
+  console.log(`Encontrados ${ids.length} IDs para exclusão (Identity nulo/vazio na coluna C).`);
   console.log(`Enviando em lotes de ${BATCH_SIZE} para a API CleverTap...\n`);
 
   const batches = chunk(ids, BATCH_SIZE);

@@ -89,14 +89,30 @@ function getObjectId(record: CleverTapRecord): string {
 }
 
 function recordToRow(record: CleverTapRecord): (string | number)[] {
+  const pd = record.profileData as Record<string, string> | undefined;
   const identity = record.identity ?? "";
-  const email =
-    record.email ?? (record.profileData as Record<string, string>)?.email ?? "";
-  const name =
-    record.name ?? (record.profileData as Record<string, string>)?.name ?? "";
+  const email = record.email ?? pd?.email ?? "";
   const objectId = getObjectId(record);
+  const phone = pd?.phone ?? pd?.["Phone"] ?? "";
+  const firstName = pd?.["First-Name"] ?? "";
+  const lastName = pd?.["Last-Name"] ?? "";
+  const fullName = pd?.["Full-Name"] ?? (record.name ?? pd?.name ?? "");
 
-  return [identity, email, name, objectId, objectId];
+  return [
+    "",           // Gender
+    email,
+    identity,
+    phone,
+    objectId,     // CleverTap
+    "",           // Device
+    "",           // Mobile Token
+    "",           // itp
+    firstName,
+    lastName,
+    fullName,
+    "",           // Creation-Date
+    "",           // Onb-Limit
+  ];
 }
 
 async function getCursor(config: PopulateConfig): Promise<string | null> {
@@ -151,7 +167,21 @@ async function getProfilesPage(
 }
 
 function writeExcel(rows: (string | number)[][], outputPath: string): void {
-  const headers = ["identity", "email", "name", "guid", "object_id"];
+  const headers = [
+    "Gender",
+    "Email",
+    "Identity",
+    "Phone",
+    "CleverTap",
+    "Device",
+    "Mobile Token",
+    "itp",
+    "First-Name",
+    "Last-Name",
+    "Full-Name",
+    "Creation-Date",
+    "Onb-Limit",
+  ];
   const data = [headers, ...rows];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
@@ -214,7 +244,7 @@ async function main(): Promise<void> {
 
   console.log(`\nPlanilha salva: ${config.outputPath}`);
   console.log(`Total: ${allRows.length} perfis`);
-  console.log("Coluna E (object_id) pronta para uso com delete-profiles.ts.");
+  console.log("Coluna E (CleverTap) pronta para uso com delete-profiles.ts.");
 }
 
 main().catch((err) => {
